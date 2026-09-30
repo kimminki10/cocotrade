@@ -121,7 +121,7 @@ export const copy = {
     fillsNote: (fills: string) => `${fills} fills`,
     hours: (hours: number) => `${hours} h`,
     assumptions: (fee: string, slippage: string) =>
-      `Fills at the next bar’s open with ${fee} fee and ${slippage} slippage per side. Order book depth and partial fills are not modeled; at this size and on these markets the effect is assumed to be small.`,
+      `Long only: a strategy is either in the market or in cash, so a bearish view can only mean holding cash. Fills at the next bar’s open with ${fee} fee and ${slippage} slippage per side. Order book depth and partial fills are not modeled; at this size and on these markets the effect is assumed to be small.`,
   },
 
   compare: {

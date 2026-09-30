@@ -5,7 +5,11 @@ import pandas as pd
 
 from app.data.repo import to_bars
 from app.engine.core import run_backtest
-from app.features.indicators import compute_features
+from app.features.indicators import (
+    PEER_COLUMNS,
+    compute_features,
+    compute_peer_features,
+)
 from app.strategies.rules import RULE_STRATEGIES
 from tests.helpers import random_ohlcv
 
@@ -61,3 +65,13 @@ def test_decisions_do_not_look_ahead():
         assert a.records[: T + 1] == b.records[: T + 1]
         # 바꾼 뒤로는 결과가 달라져야 한다 (테스트가 실제로 무언가를 바꿨는지 확인)
         assert a.records[-1].equity != b.records[-1].equity, make
+
+
+def test_peer_features_do_not_look_ahead():
+    df = random_ohlcv(N, seed=1)
+    peer = random_ohlcv(N, seed=2)
+    before = compute_peer_features(df, peer).iloc[: T + 1]
+    after = compute_peer_features(df, perturb_after(peer, T)).iloc[: T + 1]
+    pd.testing.assert_frame_equal(before, after)
+    assert before.iloc[T].notna().all()
+    assert list(before.columns) == PEER_COLUMNS

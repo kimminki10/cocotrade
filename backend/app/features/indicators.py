@@ -62,3 +62,19 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     out["volatility_vs_30d"] = vol_24h / vol_24h.rolling(24 * 30).mean()
     out["volume_vs_24h"] = df["volume"] / df["volume"].rolling(24).mean()
     return out[FEATURE_COLUMNS]
+
+
+# 다른 종목의 상태. ETH를 판단할 때 BTC의 추세와 수익률을 함께 본다 (반대도 같다).
+PEERS = {"BTC/USDT": "ETH/USDT", "ETH/USDT": "BTC/USDT"}
+PEER_SOURCE_COLUMNS = ["return_4h", "return_24h", "price_vs_sma_168"]
+PEER_COLUMNS = [f"peer_{c}" for c in PEER_SOURCE_COLUMNS]
+
+
+def compute_peer_features(df: pd.DataFrame, peer: pd.DataFrame) -> pd.DataFrame:
+    """peer의 피처를 df의 봉 시각에 맞춰 붙인다.
+
+    같은 시각의 봉은 동시에 마감되므로 판단 시점에 이미 알 수 있는 값이다.
+    peer에 없는 봉은 앞 값으로 채우지 않고 NaN으로 둔다.
+    """
+    values = compute_features(peer)[PEER_SOURCE_COLUMNS].reindex(df.index)
+    return values.set_axis(PEER_COLUMNS, axis=1)
