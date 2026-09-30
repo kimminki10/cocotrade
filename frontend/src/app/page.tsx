@@ -1,40 +1,53 @@
+import { copy } from "@/content/copy";
 import { getMarkets } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
+
+const t = copy.markets.columns;
+
+function utc(iso: string) {
+  return iso.slice(0, 16).replace("T", " ");
+}
 
 export default async function Home() {
   const markets = await getMarkets();
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-2xl font-semibold">cocotrade</h1>
-      <p className="mt-2 text-sm text-neutral-500">
-        Backtests and live track record of Jev decisions on crypto markets. Not investment advice.
-      </p>
+    <>
+      <section className="flex max-w-3xl flex-col gap-4 py-10 sm:py-12">
+        <h1 className="font-serif text-4xl leading-tight font-normal text-pretty sm:text-5xl">
+          {copy.home.title}
+        </h1>
+        <p className="max-w-2xl text-lg leading-relaxed text-muted">{copy.home.lead}</p>
+      </section>
 
-      <h2 className="mt-10 text-lg font-medium">Market data</h2>
-      <table className="mt-3 w-full text-left text-sm">
-        <thead className="text-neutral-500">
-          <tr>
-            <th className="py-1">Symbol</th>
-            <th>Timeframe</th>
-            <th>Candles</th>
-            <th>First</th>
-            <th>Last</th>
-          </tr>
-        </thead>
-        <tbody>
-          {markets.map((m) => (
-            <tr key={`${m.exchange}-${m.symbol}-${m.timeframe}`} className="border-t border-neutral-200">
-              <td className="py-1">{m.symbol}</td>
-              <td>{m.timeframe}</td>
-              <td>{m.candles.toLocaleString()}</td>
-              <td>{m.first.slice(0, 16).replace("T", " ")}</td>
-              <td>{m.last.slice(0, 16).replace("T", " ")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+      <section className="flex flex-col gap-3">
+        <h2 className="font-serif text-2xl font-medium">{copy.markets.heading}</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] border-collapse text-[15px]">
+            <thead>
+              <tr className="border-b border-ink text-left text-sm text-muted">
+                <th className="py-2 font-medium">{t.symbol}</th>
+                <th className="py-2 font-medium">{t.timeframe}</th>
+                <th className="py-2 text-right font-medium">{t.candles}</th>
+                <th className="py-2 text-right font-medium">{t.first}</th>
+                <th className="py-2 text-right font-medium">{t.last}</th>
+              </tr>
+            </thead>
+            <tbody className="font-mono tabular-nums">
+              {markets.map((m) => (
+                <tr key={`${m.exchange}-${m.symbol}-${m.timeframe}`} className="border-b border-rule">
+                  <td className="py-2.5 font-sans">{m.symbol}</td>
+                  <td className="py-2.5">{m.timeframe}</td>
+                  <td className="py-2.5 text-right">{m.candles.toLocaleString("en-US")}</td>
+                  <td className="py-2.5 text-right">{utc(m.first)}</td>
+                  <td className="py-2.5 text-right">{utc(m.last)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
   );
 }
