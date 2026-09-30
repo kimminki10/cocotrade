@@ -22,6 +22,7 @@ cd backend
 uv sync
 uv run alembic upgrade head
 uv run python -m app.data.sync       # BTC/USDT, ETH/USDT 1h candles, last 365 days
+uv run python -m app.engine.cli      # compare rule strategies against random "monkey" baselines
 uv run uvicorn app.main:app --reload # http://localhost:8000
 uv run pytest
 
