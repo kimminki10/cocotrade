@@ -1,0 +1,18 @@
+# 비공개 작업 문서
+logs/
+docs/
+
+# API 키 등 비밀 값 (TYPESAFE_API_KEY)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
