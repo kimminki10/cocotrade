@@ -1,6 +1,6 @@
 import math
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from app.engine.metrics import Metrics, compute_metrics
 from app.engine.types import Account, Bar, BarRecord, Context, Costs, Fill, Strategy
@@ -9,7 +9,8 @@ from app.engine.types import Account, Bar, BarRecord, Context, Costs, Fill, Stra
 def execute(account: Account, bar: Bar, costs: Costs) -> tuple[Account, Fill | None]:
     """직전 봉에 정한 목표 비중을 이번 봉 시가에 체결한다."""
     target = account.pending_target
-    account = replace(account, pending_target=None)
+    # dataclasses.replace는 봉마다 여러 번 불리면 느려서 직접 만든다.
+    account = Account(account.cash, account.qty)
     if target is None:
         return account, None
 
@@ -29,9 +30,7 @@ def execute(account: Account, bar: Bar, costs: Costs) -> tuple[Account, Fill | N
             return account, None
         qty = notional / fill_price
         fee = notional * costs.fee
-        account = replace(
-            account, cash=account.cash - notional - fee, qty=account.qty + qty
-        )
+        account = Account(account.cash - notional - fee, account.qty + qty)
         return account, Fill(bar.ts, "buy", qty, fill_price, notional, fee)
 
     fill_price = price * (1 - costs.slippage)
@@ -39,9 +38,7 @@ def execute(account: Account, bar: Bar, costs: Costs) -> tuple[Account, Fill | N
     qty = account.qty if target == 0 else account.qty - desired_qty
     notional = qty * fill_price
     fee = notional * costs.fee
-    account = replace(
-        account, cash=account.cash + notional - fee, qty=account.qty - qty
-    )
+    account = Account(account.cash + notional - fee, account.qty - qty)
     return account, Fill(bar.ts, "sell", qty, fill_price, notional, fee)
 
 
@@ -72,7 +69,7 @@ def step(
         raise ValueError(f"strategy returned NaN at {bar.ts}")
     target = min(max(target, 0.0), 1.0)
 
-    account = replace(account, pending_target=target)
+    account = Account(account.cash, account.qty, target)
     record = BarRecord(bar.ts, bar.close, equity, account.qty, weight, fill, target)
     return account, record
 

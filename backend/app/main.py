@@ -1,22 +1,21 @@
-from typing import Annotated
+from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, FastAPI
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
+from app.api import backtests
+from app.api.deps import SessionDep
 from app.data.models import Candle
-from app.db import SessionLocal
 
-app = FastAPI(title="cocotrade")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    backtests.shutdown_pool()
+
+
+app = FastAPI(title="cocotrade", lifespan=lifespan)
 api = APIRouter(prefix="/api")
-
-
-def get_session():
-    with SessionLocal() as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 @app.get("/health")
@@ -50,4 +49,5 @@ def markets(session: SessionDep) -> list[dict]:
     ]
 
 
+api.include_router(backtests.router)
 app.include_router(api)

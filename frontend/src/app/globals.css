@@ -2,10 +2,13 @@
 
 /* 색은 여기서만 정한다. 컴포넌트는 bg-paper, text-ink 같은 토큰 이름만 쓴다. */
 :root {
+  /* 자체 다크 모드가 있음을 알린다. 없으면 브라우저 강제 다크 모드가 차트 색을 망가뜨린다. */
+  color-scheme: light dark;
   --paper: #f6f3ec;
   --ink: #1b1a17;
   --muted: #5f5a50;
   --rule: #d9d3c5;
+  --faint: #9c9483;
   --accent: #1f4e99;
   --up: #1f4e99;
   --flat: #a8a293;
@@ -18,6 +21,7 @@
     --ink: #ece8de;
     --muted: #a39d8f;
     --rule: #3a372e;
+    --faint: #6f6a5d;
     --accent: #7fa6e8;
     --up: #7fa6e8;
     --flat: #7a7466;
@@ -30,6 +34,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-rule: var(--rule);
+  --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-up: var(--up);
   --color-flat: var(--flat);

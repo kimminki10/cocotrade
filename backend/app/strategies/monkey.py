@@ -4,7 +4,7 @@
 """
 
 import random
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
 from app.engine.core import BacktestResult, run_backtest
@@ -61,6 +61,29 @@ class MonkeyComparison:
     percentile: float
 
 
+def monkey_returns(
+    bars: Sequence[Bar],
+    profile: TradeProfile,
+    seeds: Iterable[int],
+    costs: Costs | None = None,
+    features: Sequence[Mapping[str, float]] | None = None,
+) -> list[float]:
+    """시드마다 원숭이 한 마리를 돌린 총수익률. 프로세스 풀에 넘길 수 있게 모듈 수준 함수로 둔다."""
+    return [
+        run_backtest(
+            bars, Monkey(profile, seed), costs=costs, features=features
+        ).metrics.total_return
+        for seed in seeds
+    ]
+
+
+def percentile_of(value: float, returns: Sequence[float]) -> float:
+    """value보다 낮은 원숭이의 비율 (0–100). 같은 값은 절반만 센다."""
+    below = sum(1 for r in returns if r < value)
+    ties = sum(1 for r in returns if r == value)
+    return 100 * (below + ties / 2) / len(returns)
+
+
 def compare_with_monkeys(
     bars: Sequence[Bar],
     target: BacktestResult,
@@ -70,14 +93,9 @@ def compare_with_monkeys(
     costs: Costs | None = None,
     features: Sequence[Mapping[str, float]] | None = None,
 ) -> MonkeyComparison:
-    profile = trade_profile(target)
-    returns = [
-        run_backtest(
-            bars, Monkey(profile, seed + i), costs=costs, features=features
-        ).metrics.total_return
-        for i in range(runs)
-    ]
-    value = target.metrics.total_return
-    below = sum(1 for r in returns if r < value)
-    ties = sum(1 for r in returns if r == value)
-    return MonkeyComparison(returns, 100 * (below + ties / 2) / runs)
+    returns = monkey_returns(
+        bars, trade_profile(target), range(seed, seed + runs), costs, features
+    )
+    return MonkeyComparison(
+        returns, percentile_of(target.metrics.total_return, returns)
+    )
